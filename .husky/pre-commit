@@ -9,12 +9,14 @@ export NVM_DIR="$HOME/.nvm"
 
 echo "🎣 Running pre-commit checks..."
 
-# Run lint-staged (lints and auto-fixes staged files)
-if pnpm exec lint-staged; then
-  echo "✅ Linting passed"
-else
-  echo "⚠️  Linting had issues, but allowing commit to proceed"
-fi
+# Run lint-staged with --no-stash to prevent losing changes
+# This means you should only have staged changes when committing
+pnpm exec lint-staged --no-stash || {
+  echo "❌ Linting failed! Please review and fix the errors."
+  echo "💡 Your changes are preserved. Run 'git status' to see what happened."
+  exit 1
+}
+echo "✅ Linting passed"
 
 # Update lockfile if package.json changed
 if git diff --cached --name-only | grep -q "package.json"; then
