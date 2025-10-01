@@ -1,15 +1,15 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import Link from "next/link"
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export default async function PreferencesPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   return (
@@ -17,10 +17,15 @@ export default async function PreferencesPage() {
       {/* Navbar */}
       <nav className="border-b border-black/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/scroll" className="text-black hover:text-black/70 transition-colors">
+          <Link
+            href="/scroll"
+            className="text-black hover:text-black/70 transition-colors"
+          >
             ← Back
           </Link>
-          <h1 className="text-xl font-semibold text-black">Movie Preferences</h1>
+          <h1 className="text-xl font-semibold text-black">
+            Movie Preferences
+          </h1>
           <div className="w-16" /> {/* Spacer for centering */}
         </div>
       </nav>
@@ -28,10 +33,12 @@ export default async function PreferencesPage() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="text-center py-20">
-          <h2 className="text-2xl font-semibold text-black mb-4">Set Your Movie Preferences</h2>
+          <h2 className="text-2xl font-semibold text-black mb-4">
+            Set Your Movie Preferences
+          </h2>
           <p className="text-black/60">Tell us what you like to watch</p>
         </div>
       </div>
     </div>
-  )
+  );
 }

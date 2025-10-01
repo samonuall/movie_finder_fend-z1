@@ -1,34 +1,40 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [repeatPassword, setRepeatPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    const supabase = createClient();
+    setIsLoading(true);
+    setError(null);
 
     if (password !== repeatPassword) {
-      setError("Passwords do not match")
-      setIsLoading(false)
-      return
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
     }
 
     try {
@@ -36,22 +42,24 @@ export default function SignUpPage() {
         email,
         password,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/scroll`,
+          emailRedirectTo:
+            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+            `${window.location.origin}/scroll`,
         },
-      })
-      if (error) throw error
-      router.push("/auth/sign-up-success")
+      });
+      if (error) throw error;
+      router.push("/auth/sign-up-success");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleSignIn = async () => {
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
+    const supabase = createClient();
+    setIsLoading(true);
+    setError(null);
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -59,13 +67,13 @@ export default function SignUpPage() {
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
-      })
-      if (error) throw error
+      });
+      if (error) throw error;
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
-      setIsLoading(false)
+      setError(error instanceof Error ? error.message : "An error occurred");
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-6 bg-white">
@@ -73,7 +81,9 @@ export default function SignUpPage() {
         <Card className="border-2 border-black">
           <CardHeader>
             <CardTitle className="text-2xl text-black">Sign Up</CardTitle>
-            <CardDescription className="text-black/70">Create a new account to get started</CardDescription>
+            <CardDescription className="text-black/70">
+              Create a new account to get started
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignUp}>
@@ -111,7 +121,9 @@ export default function SignUpPage() {
                     <span className="w-full border-t border-black/20" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-black/70">Or continue with email</span>
+                    <span className="bg-white px-2 text-black/70">
+                      Or continue with email
+                    </span>
                   </div>
                 </div>
 
@@ -156,13 +168,20 @@ export default function SignUpPage() {
                   />
                 </div>
                 {error && <p className="text-sm text-red-600">{error}</p>}
-                <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={isLoading}>
+                <Button
+                  type="submit"
+                  className="w-full bg-black text-white hover:bg-black/90"
+                  disabled={isLoading}
+                >
                   {isLoading ? "Creating account..." : "Sign Up"}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm text-black/70">
                 Already have an account?{" "}
-                <Link href="/auth/login" className="text-black underline underline-offset-4 hover:text-black/70">
+                <Link
+                  href="/auth/login"
+                  className="text-black underline underline-offset-4 hover:text-black/70"
+                >
                   Login
                 </Link>
               </div>
@@ -171,5 +190,5 @@ export default function SignUpPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

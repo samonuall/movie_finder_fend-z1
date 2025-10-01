@@ -1,37 +1,37 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { User } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useState, useRef, useEffect } from "react";
+import { User } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export function ProfileMenu() {
-  const [isOpen, setIsOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
-  const supabase = createClient()
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const supabase = createClient();
 
   // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+        setIsOpen(false);
       }
     }
 
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [isOpen])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = "/"
-  }
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
 
   return (
     <div className="relative" ref={menuRef}>
@@ -50,8 +50,8 @@ export function ProfileMenu() {
           <div className="py-2">
             <button
               onClick={() => {
-                setIsOpen(false)
-                router.push("/scroll/watchlist")
+                setIsOpen(false);
+                router.push("/scroll/watchlist");
               }}
               className="w-full px-4 py-2.5 text-left text-black hover:bg-black/5 transition-colors"
             >
@@ -59,8 +59,8 @@ export function ProfileMenu() {
             </button>
             <button
               onClick={() => {
-                setIsOpen(false)
-                router.push("/scroll/preferences")
+                setIsOpen(false);
+                router.push("/scroll/preferences");
               }}
               className="w-full px-4 py-2.5 text-left text-black hover:bg-black/5 transition-colors"
             >
@@ -68,8 +68,8 @@ export function ProfileMenu() {
             </button>
             <button
               onClick={() => {
-                setIsOpen(false)
-                router.push("/scroll/settings")
+                setIsOpen(false);
+                router.push("/scroll/settings");
               }}
               className="w-full px-4 py-2.5 text-left text-black hover:bg-black/5 transition-colors"
             >
@@ -86,5 +86,5 @@ export function ProfileMenu() {
         </div>
       )}
     </div>
-  )
+  );
 }

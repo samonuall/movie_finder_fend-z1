@@ -1,13 +1,13 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { ScrollNavbar } from "@/components/scroll-navbar"
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { ScrollNavbar } from "@/components/scroll-navbar";
 
 export default async function MyMoviesPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.getUser()
+  const { data, error } = await supabase.auth.getUser();
   if (error || !data?.user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   return (
@@ -19,5 +19,5 @@ export default async function MyMoviesPage() {
         <p className="text-black/60">Your movie collection will appear here.</p>
       </main>
     </div>
-  )
+  );
 }

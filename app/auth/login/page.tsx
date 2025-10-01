@@ -1,47 +1,53 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    const supabase = createClient();
+    setIsLoading(true);
+    setError(null);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      })
-      if (error) throw error
-      router.push("/scroll")
+      });
+      if (error) throw error;
+      router.push("/scroll");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleSignIn = async () => {
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
+    const supabase = createClient();
+    setIsLoading(true);
+    setError(null);
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -49,13 +55,13 @@ export default function LoginPage() {
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
-      })
-      if (error) throw error
+      });
+      if (error) throw error;
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
-      setIsLoading(false)
+      setError(error instanceof Error ? error.message : "An error occurred");
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-6 bg-white">
@@ -63,7 +69,9 @@ export default function LoginPage() {
         <Card className="border-2 border-black">
           <CardHeader>
             <CardTitle className="text-2xl text-black">Login</CardTitle>
-            <CardDescription className="text-black/70">Enter your credentials to access your account</CardDescription>
+            <CardDescription className="text-black/70">
+              Enter your credentials to access your account
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin}>
@@ -101,7 +109,9 @@ export default function LoginPage() {
                     <span className="w-full border-t border-black/20" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-black/70">Or continue with email</span>
+                    <span className="bg-white px-2 text-black/70">
+                      Or continue with email
+                    </span>
                   </div>
                 </div>
 
@@ -133,13 +143,20 @@ export default function LoginPage() {
                   />
                 </div>
                 {error && <p className="text-sm text-red-600">{error}</p>}
-                <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={isLoading}>
+                <Button
+                  type="submit"
+                  className="w-full bg-black text-white hover:bg-black/90"
+                  disabled={isLoading}
+                >
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm text-black/70">
                 Don&apos;t have an account?{" "}
-                <Link href="/auth/sign-up" className="text-black underline underline-offset-4 hover:text-black/70">
+                <Link
+                  href="/auth/sign-up"
+                  className="text-black underline underline-offset-4 hover:text-black/70"
+                >
                   Sign up
                 </Link>
               </div>
@@ -148,5 +165,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
