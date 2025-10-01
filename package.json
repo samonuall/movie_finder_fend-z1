@@ -79,12 +79,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "npx pnpm lint --fix",
-      "git add"
-    ],
-    "package.json": [
-      "npx pnpm install",
-      "git add pnpm-lock.yaml"
+      "/Users/samonuallain/.nvm/versions/node/v20.17.0/bin/pnpm lint --fix"
     ]
   }
 }
