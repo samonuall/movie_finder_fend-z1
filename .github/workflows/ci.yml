@@ -1,4 +1,4 @@
-name: tests
+name: ci
 
 on:
   pull_request:   # run on ANY PR to ANY branch
@@ -9,9 +9,6 @@ jobs:
     name: pnpm test (Node 20.17.0)
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
-
-    permissions:
-      contents: read
 
     env:
       CI: true
@@ -32,10 +29,10 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 9
-          run_install: false
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+          run_install: true   # installs dependencies automatically
 
       - name: Run tests
         run: pnpm test
+
+      - name: Build
+        run: pnpm build
