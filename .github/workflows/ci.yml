@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  pull_request:   # run on ANY PR to ANY branch
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  unit-tests:
+    name: pnpm test (Node 20.17.0)
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    env:
+      CI: true
+      NODE_ENV: test
+      NEXT_TELEMETRY_DISABLED: 1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.17.0
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: true   # installs dependencies automatically
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
