@@ -1,19 +1,22 @@
 #!/usr/bin/env sh
 
-# Load conda environment
-if [ -f "$HOME/anaconda3/etc/profile.d/conda.sh" ]; then
-    . "$HOME/anaconda3/etc/profile.d/conda.sh"
-fi
+# Load NVM and use the correct Node/pnpm version
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-# Add common paths where Node.js and pnpm might be
-export PATH="$HOME/anaconda3/bin:$HOME/anaconda3/condabin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+# Use the specific pnpm path from your nvm installation
+PNPM_CMD="/Users/samonuallain/.nvm/versions/node/v20.17.0/bin/pnpm"
+
+echo "🎣 Running pre-commit checks..."
 
 # Run lint-staged (lints and auto-fixes staged files)
-pnpm exec lint-staged || echo "⚠️ Lint-staged failed, but continuing..."
+$PNPM_CMD exec lint-staged
 
 # Update lockfile if package.json changed
 if git diff --cached --name-only | grep -q "package.json"; then
   echo "📦 package.json changed, updating lockfile..."
-  pnpm install --lockfile-only || echo "⚠️ Failed to update lockfile"
+  $PNPM_CMD install --lockfile-only
   git add pnpm-lock.yaml
 fi
+
+echo "✅ Pre-commit checks complete"
