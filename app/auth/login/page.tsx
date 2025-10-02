@@ -50,6 +50,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
+      console.log(`${window.location.origin}/auth/callback`);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {

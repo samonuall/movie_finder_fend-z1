@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         } else if (forwardedHost) {
           redirectUrl = `https://${forwardedHost}`;
         } else {
-          return NextResponse.redirect(`${origin}$/auth/error`);
+          return NextResponse.redirect(`${origin}/auth/error`);
         }
       } else {
         redirectUrl = origin;
