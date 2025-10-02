@@ -84,13 +84,15 @@
     "jest-environment-jsdom": "^30.2.0",
     "lint-staged": "^16.2.3",
     "postcss": "^8.5",
+    "prettier": "^3.6.2",
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",
     "typescript": "^5"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "/Users/samonuallain/.nvm/versions/node/v20.17.0/bin/pnpm lint --fix"
+      "eslint --fix",
+      "prettier --write"
     ]
   }
 }
