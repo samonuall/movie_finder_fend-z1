@@ -1,9 +1,5 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { User } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardHeader,
@@ -14,14 +10,19 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import type { Movie } from "@/lib/types";
 
-export function VideoCard({ videoId }: { videoId: string }) {
+export function VideoCard({ movie }: { movie: Movie }) {
+  const releaseYear = new Date(movie.releaseDate).getFullYear();
+
   return (
     <div>
       <Card>
         <CardHeader>
-          <CardTitle>The Matrix</CardTitle>
-          <CardDescription>1999 • Sci-Fi</CardDescription>
+          <CardTitle>{movie.title}</CardTitle>
+          <CardDescription>
+            {releaseYear} • {movie.genre}
+          </CardDescription>
           <CardAction>
             <Button variant="ghost" size="icon">
               ❤️
@@ -30,10 +31,12 @@ export function VideoCard({ videoId }: { videoId: string }) {
         </CardHeader>
 
         <CardContent>
-          <img src="/matrix.jpg" className="w-full rounded-lg" />
-          <p className="mt-4">
-            A computer hacker learns about the true nature of reality...
-          </p>
+          <img
+            src="/placeholder.jpg"
+            alt={movie.title}
+            className="w-full rounded-lg"
+          />
+          <p className="mt-4">{movie.description}</p>
         </CardContent>
 
         <CardFooter className="justify-between">
