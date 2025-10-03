@@ -14,7 +14,7 @@ export function ScrollNavbar() {
   ];
 
   return (
-    <nav className="border-b-2 border-black/10 relative">
+    <nav className="border-b-2 border-black/10 relative z-50">
       <div className="px-6 py-4">
         <div className="flex items-center justify-center max-w-7xl mx-auto">
           {/* Centered navigation links */}
