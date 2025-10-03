@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { VideoCard } from "./video-card";
 import type { Movie, Interaction } from "@/lib/types";
 
@@ -41,6 +41,7 @@ const STORAGE_KEY = "react-query-movieFeed";
 
 export function ScrollFeed() {
   const queryClient = useQueryClient();
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Restore from localStorage on mount, depends on queryClient
   useEffect(() => {
@@ -75,23 +76,43 @@ export function ScrollFeed() {
       // Return the next page number
       return allPages.length;
     },
-    staleTime: Infinity, // Never refetch - data is immutable
-    gcTime: Infinity, // Keep in cache forever
+    staleTime: Infinity, // Never refetch - data is immutable within session
+    gcTime: Infinity, // Keep in cache during session (lost on page reload)
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: false, // Don't refetch when navigating back
     refetchOnReconnect: false,
   });
 
-  // Save to localStorage whenever data changes
+  // IntersectionObserver for infinite scroll
   useEffect(() => {
-    if (data && typeof window !== "undefined") {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } catch (e) {
-        console.error("Failed to save movie feed to localStorage", e);
-      }
-    }
-  }, [data]);
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // entries is an array, but we only observe one element
+        const entry = entries[0];
+
+        // If sentinel is visible and we're not already fetching
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      {
+        // Trigger when sentinel is 200px away from viewport
+        rootMargin: "200px",
+        // Trigger as soon as any part is visible
+        threshold: 0,
+      },
+    );
+
+    observer.observe(sentinel);
+
+    // Cleanup: disconnect observer when component unmounts
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   if (status === "pending") {
     return <div className="text-center py-12">Loading movies...</div>;
@@ -110,28 +131,26 @@ export function ScrollFeed() {
 
   return (
     <div className="space-y-6">
+      {/* Render all movies */}
       {allMovies.map((movie) => (
         <VideoCard key={movie.id} movie={movie} />
       ))}
 
-      {/* Load More Button - you'll replace this with intersection observer */}
-      <div className="text-center py-6">
-        <button
-          onClick={() => fetchNextPage()}
-          disabled={!hasNextPage || isFetchingNextPage}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50"
-        >
-          {isFetchingNextPage
-            ? "Loading more..."
-            : hasNextPage
-              ? "Load More Movies"
-              : "No more movies"}
-        </button>
-      </div>
+      {/* Sentinel element for intersection observer */}
+      <div ref={sentinelRef} className="h-10" />
 
-      {isFetching && !isFetchingNextPage && (
-        <div className="text-center py-4 text-sm text-gray-500">
-          Refreshing...
+      {/* Loading indicator */}
+      {isFetchingNextPage && (
+        <div className="text-center py-6">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+          <p className="mt-2 text-sm text-gray-600">Loading more movies...</p>
+        </div>
+      )}
+
+      {/* End of feed indicator */}
+      {!hasNextPage && allMovies.length > 0 && (
+        <div className="text-center py-6 text-gray-500">
+          <p>No more movies to load</p>
         </div>
       )}
     </div>
