@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ScrollNavbar } from "@/components/scroll-navbar";
-import { VideoCard } from "@/components/infinite-scroll/video-card";
-import { Video } from "lucide-react";
+import { ScrollFeed } from "@/components/infinite-scroll/scroll-feed";
 
 export default async function ScrollPage() {
   const supabase = await createClient();
@@ -13,12 +12,11 @@ export default async function ScrollPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
       <ScrollNavbar />
 
-      <VideoCard videoId={"hello"} />
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Content will go here */}
+      <main className="flex-1 overflow-hidden">
+        <ScrollFeed />
       </main>
     </div>
   );
