@@ -12,10 +12,10 @@ export default async function ScrollPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
       <ScrollNavbar />
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <main className="flex-1 overflow-hidden">
         <ScrollFeed />
       </main>
     </div>

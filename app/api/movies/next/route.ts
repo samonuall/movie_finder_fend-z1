@@ -17,14 +17,17 @@ async function getMovieDetails(movieId: MovieID): Promise<Movie> {
   // Simulate API call to TMDB/YouTube
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  // Return mock movie data
-  return {
+  const movieDetails = {
     id: movieId,
     title: `Movie ${movieId}`,
     description: `This is a description for movie ${movieId}. A thrilling story that captivates audiences.`,
     releaseDate: "2023-01-15",
     genre: "Action",
+    videoUrl: "https://www.youtube.com/embed/Way9Dexny3w?si=c9SQJEmARtNg9-ef",
   };
+
+  // Return mock movie data with embedded YouTube video
+  return movieDetails;
 }
 
 export async function POST(request: Request) {

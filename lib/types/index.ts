@@ -12,4 +12,5 @@ export interface Movie {
   description: string;
   releaseDate: string;
   genre: string;
+  videoUrl: string;
 }

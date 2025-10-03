@@ -3,6 +3,7 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { VideoCard } from "./video-card";
+import { Pill } from "@/components/ui/pill";
 import type { Movie, Interaction } from "@/lib/types";
 
 interface FetchMoviesParams {
@@ -37,26 +38,10 @@ async function fetchNextMovies({
 }
 
 const MOVIE_FEED_KEY = "movieFeed";
-const STORAGE_KEY = "react-query-movieFeed";
 
 export function ScrollFeed() {
   const queryClient = useQueryClient();
   const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Restore from localStorage on mount, depends on queryClient
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        try {
-          const parsedData = JSON.parse(stored);
-          queryClient.setQueryData([MOVIE_FEED_KEY], parsedData);
-        } catch (e) {
-          console.error("Failed to restore movie feed from localStorage", e);
-        }
-      }
-    }
-  }, [queryClient]);
 
   // Use useInfiniteQuery to fetch movie pages
   const {
@@ -115,13 +100,21 @@ export function ScrollFeed() {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   if (status === "pending") {
-    return <div className="text-center py-12">Loading movies...</div>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Pill isLoading loadingText="Loading movies..." />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12 text-red-500">
-        Error loading movies: {error.message}
+      <div className="flex items-center justify-center h-full">
+        <Pill variant="dark">
+          <p className="text-sm text-red-400">
+            Error loading movies: {error.message}
+          </p>
+        </Pill>
       </div>
     );
   }
@@ -130,27 +123,38 @@ export function ScrollFeed() {
   const allMovies = data.pages.flatMap((page) => page.movies);
 
   return (
-    <div className="space-y-6">
+    <div
+      className="h-full overflow-y-scroll snap-y snap-mandatory relative"
+      style={{ scrollBehavior: "smooth" }}
+    >
       {/* Render all movies */}
-      {allMovies.map((movie) => (
-        <VideoCard key={movie.id} movie={movie} />
+      {allMovies.map((movie, index) => (
+        <div
+          key={movie.id}
+          className="min-h-full snap-start snap-always flex items-center justify-center px-4 py-16"
+        >
+          <div className="w-full max-w-4xl">
+            <VideoCard movie={movie} />
+          </div>
+        </div>
       ))}
 
-      {/* Sentinel element for intersection observer */}
-      <div ref={sentinelRef} className="h-10" />
+      {/* Sentinel element for intersection observer - hidden, just for triggering */}
+      <div ref={sentinelRef} className="h-1" />
 
-      {/* Loading indicator */}
+      {/* Loading indicator - fixed position overlay */}
       {isFetchingNextPage && (
-        <div className="text-center py-6">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-          <p className="mt-2 text-sm text-gray-600">Loading more movies...</p>
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+          <Pill isLoading loadingText="Loading more movies..." />
         </div>
       )}
 
       {/* End of feed indicator */}
       {!hasNextPage && allMovies.length > 0 && (
-        <div className="text-center py-6 text-gray-500">
-          <p>No more movies to load</p>
+        <div className="h-full snap-start flex items-center justify-center">
+          <Pill variant="light">
+            <p className="text-sm text-gray-500">No more movies to load</p>
+          </Pill>
         </div>
       )}
     </div>
