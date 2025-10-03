@@ -1,6 +1,7 @@
 "use client";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { VideoCard } from "./video-card";
 import type { Movie, Interaction } from "@/lib/types";
 
@@ -35,7 +36,27 @@ async function fetchNextMovies({
   return { movies: data.movies };
 }
 
+const MOVIE_FEED_KEY = "movieFeed";
+const STORAGE_KEY = "react-query-movieFeed";
+
 export function ScrollFeed() {
+  const queryClient = useQueryClient();
+
+  // Restore from localStorage on mount, depends on queryClient
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsedData = JSON.parse(stored);
+          queryClient.setQueryData([MOVIE_FEED_KEY], parsedData);
+        } catch (e) {
+          console.error("Failed to restore movie feed from localStorage", e);
+        }
+      }
+    }
+  }, [queryClient]);
+
   // Use useInfiniteQuery to fetch movie pages
   const {
     data,
@@ -46,13 +67,13 @@ export function ScrollFeed() {
     isFetchingNextPage,
     status,
   } = useInfiniteQuery({
-    queryKey: ["movieFeed"],
+    queryKey: [MOVIE_FEED_KEY],
     queryFn: fetchNextMovies,
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       // Always has next page (infinite recommendations)
       // Return the next page number
-      return allPages.length + 1;
+      return allPages.length;
     },
     staleTime: Infinity, // Never refetch - data is immutable
     gcTime: Infinity, // Keep in cache forever
@@ -60,6 +81,17 @@ export function ScrollFeed() {
     refetchOnMount: false,
     refetchOnReconnect: false,
   });
+
+  // Save to localStorage whenever data changes
+  useEffect(() => {
+    if (data && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.error("Failed to save movie feed to localStorage", e);
+      }
+    }
+  }, [data]);
 
   if (status === "pending") {
     return <div className="text-center py-12">Loading movies...</div>;

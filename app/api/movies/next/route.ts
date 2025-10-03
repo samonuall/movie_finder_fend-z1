@@ -9,7 +9,7 @@ async function getRecommendedMovieIds(
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   // Return mock movie IDs
-  return [1, 2, 3, 4, 5];
+  return interactions.map((interaction) => interaction.input);
 }
 
 // Mock function to fetch movie details from TMDB (will be replaced with actual API call)
