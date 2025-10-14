@@ -89,15 +89,43 @@ describe("fetchRandomMovies", () => {
               movie_offers: [
                 {
                   offer_type: "buy",
-                  provider: { provider_id: 99, provider_name: "Apple TV" },
+                  provider: {
+                    provider_id: 99,
+                    provider_name: "Apple TV",
+                    display_priority: 5,
+                  },
                 },
                 {
                   offer_type: "rent",
-                  provider: { provider_id: 99, provider_name: "Apple TV" },
+                  provider: {
+                    provider_id: 99,
+                    provider_name: "Apple TV",
+                    display_priority: 5,
+                  },
                 },
                 {
                   offer_type: "flatrate",
-                  provider: { provider_id: 15, provider_name: "Netflix" },
+                  provider: {
+                    provider_id: 15,
+                    provider_name: "Netflix",
+                    display_priority: 0,
+                  },
+                },
+                {
+                  offer_type: "flatrate",
+                  provider: {
+                    provider_id: 337,
+                    provider_name: "Disney Plus",
+                    display_priority: 2,
+                  },
+                },
+                {
+                  offer_type: "flatrate",
+                  provider: {
+                    provider_id: 18,
+                    provider_name: "Hulu",
+                    display_priority: 7,
+                  },
                 },
               ],
             },
@@ -126,11 +154,98 @@ describe("fetchRandomMovies", () => {
 
     expect(movie.streamingProviders).toEqual([
       { id: "15", name: "Netflix", access: "subscription" },
+      { id: "337", name: "Disney Plus", access: "subscription" },
       { id: "99", name: "Apple TV", access: "rent" },
     ]);
 
     expect(mockFrom).toHaveBeenNthCalledWith(1, "movies");
     expect(mockFrom).toHaveBeenNthCalledWith(2, "movies");
+  });
+
+  it("limits streaming providers to the top two per access category", async () => {
+    mockFrom
+      .mockImplementationOnce(() =>
+        createCountBuilder({ count: 6, error: null }),
+      )
+      .mockImplementationOnce(() =>
+        createDataBuilder({
+          data: [
+            {
+              id: 99,
+              title: "Category Test",
+              original_title: null,
+              overview: "Category test overview.",
+              release_date: "2024-02-10",
+              trailer_id: "cat123",
+              genres: [],
+              movie_metrics: {
+                vote_average: 5.4,
+                vote_count: 1000,
+              },
+              movie_offers: [
+                {
+                  offer_type: "flatrate",
+                  provider: {
+                    provider_id: 1,
+                    provider_name: "Provider A",
+                    display_priority: 2,
+                  },
+                },
+                {
+                  offer_type: "flatrate",
+                  provider: {
+                    provider_id: 2,
+                    provider_name: "Provider B",
+                    display_priority: 0,
+                  },
+                },
+                {
+                  offer_type: "flatrate",
+                  provider: {
+                    provider_id: 3,
+                    provider_name: "Provider C",
+                    display_priority: 1,
+                  },
+                },
+                {
+                  offer_type: "rent",
+                  provider: {
+                    provider_id: 4,
+                    provider_name: "Provider D",
+                    display_priority: 10,
+                  },
+                },
+                {
+                  offer_type: "rent",
+                  provider: {
+                    provider_id: 5,
+                    provider_name: "Provider E",
+                    display_priority: 3,
+                  },
+                },
+                {
+                  offer_type: "rent",
+                  provider: {
+                    provider_id: 6,
+                    provider_name: "Provider F",
+                    display_priority: 1,
+                  },
+                },
+              ],
+            },
+          ],
+          error: null,
+        }),
+      );
+
+    const [movie] = await fetchRandomMovies(1);
+
+    expect(movie?.streamingProviders).toEqual([
+      { id: "2", name: "Provider B", access: "subscription" },
+      { id: "3", name: "Provider C", access: "subscription" },
+      { id: "6", name: "Provider F", access: "rent" },
+      { id: "5", name: "Provider E", access: "rent" },
+    ]);
   });
 
   it("throws when count query fails", async () => {

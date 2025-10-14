@@ -1,13 +1,20 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
-import type { Movie, StreamingProvider } from "@/lib/types";
+import type { Movie, ProviderAccess, StreamingProvider } from "@/lib/types";
 
 type OfferType = "buy" | "rent" | "flatrate" | "free";
 
-const OFFER_ACCESS_LABEL: Record<OfferType, StreamingProvider["access"]> = {
+const OFFER_ACCESS_LABEL: Record<OfferType, ProviderAccess> = {
   flatrate: "subscription",
   free: "free",
   rent: "rent",
   buy: "buy",
+};
+
+const ACCESS_PRIORITY: Record<ProviderAccess, number> = {
+  subscription: 0,
+  free: 1,
+  rent: 2,
+  buy: 3,
 };
 
 const OFFER_PRIORITY: Record<OfferType, number> = {
@@ -39,6 +46,7 @@ type MovieRow = {
     provider: {
       provider_id: number | null;
       provider_name: string | null;
+      display_priority: number | null;
     } | null;
   }> | null;
 };
@@ -59,7 +67,8 @@ const MOVIE_SELECT = `
     offer_type,
     provider:providers(
       provider_id,
-      provider_name
+      provider_name,
+      display_priority
     )
   )
 `.replace(/\s+/g, " ");
@@ -168,39 +177,65 @@ function buildStreamingProviders(
 ): StreamingProvider[] {
   if (!Array.isArray(offers)) return [];
 
-  const providers = new Map<number, StreamingProvider & { priority: number }>();
+  const providers = new Map<string, ProviderCandidate>();
 
   offers.forEach((offer) => {
     if (!offer?.provider) return;
-    const { provider_id: providerId, provider_name: providerName } =
-      offer.provider;
-
-    if (!providerId || !providerName) return;
     if (!isSupportedOfferType(offer.offer_type)) return;
 
+    const { provider_id: providerId, provider_name: providerName } =
+      offer.provider;
+    if (!providerId || !providerName) return;
+
     const access = OFFER_ACCESS_LABEL[offer.offer_type];
-    const priority = OFFER_PRIORITY[offer.offer_type];
-    const existing = providers.get(providerId);
+    const offerPriority = OFFER_PRIORITY[offer.offer_type];
+    const displayPriority = extractDisplayPriority(
+      offer.provider.display_priority,
+    );
+    const providerKey = String(providerId);
 
-    if (existing && existing.priority <= priority) {
-      return;
-    }
-
-    providers.set(providerId, {
-      id: String(providerId),
+    const candidate: ProviderCandidate = {
+      id: providerKey,
       name: providerName,
       access,
-      priority,
-    });
+      accessPriority: ACCESS_PRIORITY[access],
+      offerPriority,
+      displayPriority,
+    };
+
+    const existing = providers.get(providerKey);
+
+    if (!existing || isCandidatePreferred(candidate, existing)) {
+      providers.set(providerKey, candidate);
+    }
   });
 
-  return Array.from(providers.values())
-    .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name))
-    .map((provider) => ({
-      id: provider.id,
-      name: provider.name,
-      access: provider.access,
-    }));
+  const grouped = new Map<ProviderAccess, ProviderCandidate[]>();
+
+  providers.forEach((provider) => {
+    const list = grouped.get(provider.access);
+    if (list) {
+      list.push(provider);
+    } else {
+      grouped.set(provider.access, [provider]);
+    }
+  });
+
+  return Array.from(grouped.entries())
+    .sort(
+      ([accessA], [accessB]) =>
+        ACCESS_PRIORITY[accessA] - ACCESS_PRIORITY[accessB],
+    )
+    .flatMap(([, entries]) =>
+      entries
+        .sort(compareCandidates)
+        .slice(0, 2)
+        .map(({ id, name, access }) => ({
+          id,
+          name,
+          access,
+        })),
+    );
 }
 
 function isSupportedOfferType(value: unknown): value is OfferType {
@@ -224,4 +259,56 @@ function shuffle<T>(items: T[]): T[] {
 function buildYouTubeEmbedUrl(trailerId: string) {
   const trimmed = trailerId.trim();
   return `https://www.youtube.com/embed/${trimmed}`;
+}
+
+type ProviderCandidate = {
+  id: string;
+  name: string;
+  access: ProviderAccess;
+  accessPriority: number;
+  offerPriority: number;
+  displayPriority: number | null;
+};
+
+function extractDisplayPriority(value: unknown) {
+  return typeof value === "number" ? value : null;
+}
+
+function compareCandidates(a: ProviderCandidate, b: ProviderCandidate) {
+  const displayDiff =
+    (a.displayPriority ?? Number.POSITIVE_INFINITY) -
+    (b.displayPriority ?? Number.POSITIVE_INFINITY);
+
+  if (displayDiff !== 0) {
+    return displayDiff;
+  }
+
+  if (a.offerPriority !== b.offerPriority) {
+    return a.offerPriority - b.offerPriority;
+  }
+
+  return a.name.localeCompare(b.name);
+}
+
+function isCandidatePreferred(
+  candidate: ProviderCandidate,
+  existing: ProviderCandidate,
+) {
+  if (candidate.accessPriority !== existing.accessPriority) {
+    return candidate.accessPriority < existing.accessPriority;
+  }
+
+  const candidateDisplay =
+    candidate.displayPriority ?? Number.POSITIVE_INFINITY;
+  const existingDisplay = existing.displayPriority ?? Number.POSITIVE_INFINITY;
+
+  if (candidateDisplay !== existingDisplay) {
+    return candidateDisplay < existingDisplay;
+  }
+
+  if (candidate.offerPriority !== existing.offerPriority) {
+    return candidate.offerPriority < existing.offerPriority;
+  }
+
+  return candidate.name.localeCompare(existing.name) < 0;
 }

@@ -13,11 +13,12 @@ export interface MovieRating {
   voteCount: number;
 }
 
+export type ProviderAccess = "subscription" | "free" | "rent" | "buy";
+
 export interface StreamingProvider {
   id: string;
   name: string;
-  access: string;
-  price?: string;
+  access: ProviderAccess;
 }
 
 export interface Movie {

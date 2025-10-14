@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -7,14 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { Movie } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import type { Movie, ProviderAccess } from "@/lib/types";
 
-function formatAccessLabel(access: string, price?: string) {
+const DESCRIPTION_TRUNCATE_LENGTH = 260;
+
+function formatAccessLabel(access: ProviderAccess) {
   const capitalized = access.charAt(0).toUpperCase() + access.slice(1);
-  if (!price) {
-    return capitalized;
-  }
-  return `${capitalized} • ${price}`;
+  return capitalized;
 }
 
 function formatReleaseDate(value: string) {
@@ -30,11 +31,48 @@ function formatReleaseDate(value: string) {
   }).format(parsed);
 }
 
+function truncateDescription(value: string, limit: number) {
+  if (value.length <= limit) {
+    return value;
+  }
+
+  const trimmed = value.slice(0, limit).trimEnd();
+  const lastSpace = trimmed.lastIndexOf(" ");
+  const safeSlice =
+    lastSpace > limit * 0.6 ? trimmed.slice(0, lastSpace) : trimmed;
+
+  return `${safeSlice.replace(/[.,;:!?]$/, "")}...`;
+}
+
+interface DescriptionState {
+  text: string;
+  hasToggle: boolean;
+}
+
 interface MovieRoomCardProps {
   movie: Movie;
 }
 
 export function MovieRoomCard({ movie }: MovieRoomCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const description = useMemo<DescriptionState>(() => {
+    const normalized = movie.description.trim();
+
+    if (normalized.length <= DESCRIPTION_TRUNCATE_LENGTH) {
+      return { text: normalized, hasToggle: false };
+    }
+
+    if (isExpanded) {
+      return { text: normalized, hasToggle: true };
+    }
+
+    return {
+      text: truncateDescription(normalized, DESCRIPTION_TRUNCATE_LENGTH),
+      hasToggle: true,
+    };
+  }, [isExpanded, movie.description]);
+
   return (
     <Card className="h-fit lg:sticky lg:top-24">
       <CardHeader className="border-b border-black/10">
@@ -51,9 +89,24 @@ export function MovieRoomCard({ movie }: MovieRoomCardProps) {
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
             Synopsis
           </p>
-          <p className="text-sm leading-relaxed text-black/80">
-            {movie.description}
+          <p
+            data-testid="movie-synopsis"
+            className="text-sm leading-relaxed text-black/80"
+          >
+            {description.text}
           </p>
+          {description.hasToggle ? (
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto px-0 text-xs font-medium text-primary"
+              onClick={() => setIsExpanded((value) => !value)}
+              aria-expanded={isExpanded}
+            >
+              {isExpanded ? "Show less" : "More"}
+            </Button>
+          ) : null}
         </section>
 
         <section className="space-y-2">
@@ -68,7 +121,7 @@ export function MovieRoomCard({ movie }: MovieRoomCardProps) {
               >
                 <span className="font-medium text-black">{provider.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {formatAccessLabel(provider.access, provider.price)}
+                  {formatAccessLabel(provider.access)}
                 </span>
               </li>
             ))}
