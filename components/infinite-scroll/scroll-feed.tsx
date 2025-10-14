@@ -1,10 +1,12 @@
 "use client";
 
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
-import { VideoCard } from "./video-card";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pill } from "@/components/ui/pill";
-import type { Movie, Interaction } from "@/lib/types";
+import { MovieRoomCard } from "./movie-room-card";
+import { MovieRatingsCard } from "./movie-ratings-card";
+import { VideoCard } from "./video-card";
+import type { Interaction, Movie, MovieID } from "@/lib/types";
 
 interface FetchMoviesParams {
   pageParam: number;
@@ -40,68 +42,130 @@ async function fetchNextMovies({
 const MOVIE_FEED_KEY = "movieFeed";
 
 export function ScrollFeed() {
-  const queryClient = useQueryClient();
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const videoNodeRegistry = useRef<Map<MovieID, HTMLDivElement>>(new Map());
+  const [activeMovieId, setActiveMovieId] = useState<MovieID | null>(null);
 
-  // Use useInfiniteQuery to fetch movie pages
   const {
     data,
     error,
     fetchNextPage,
     hasNextPage,
-    isFetching,
     isFetchingNextPage,
     status,
   } = useInfiniteQuery({
     queryKey: [MOVIE_FEED_KEY],
     queryFn: fetchNextMovies,
     initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      // Always has next page (infinite recommendations)
-      // Return the next page number
-      return allPages.length;
-    },
-    staleTime: Infinity, // Never refetch - data is immutable within session
-    gcTime: Infinity, // Keep in cache during session (lost on page reload)
+    getNextPageParam: (_lastPage, allPages) => allPages.length,
+    staleTime: Infinity,
+    gcTime: Infinity,
     refetchOnWindowFocus: false,
-    refetchOnMount: false, // Don't refetch when navigating back
+    refetchOnMount: false,
     refetchOnReconnect: false,
   });
 
-  // IntersectionObserver for infinite scroll
+  const allMovies = useMemo(() => {
+    if (!data) return [];
+    return data.pages.flatMap((page) => page.movies);
+  }, [data]);
+
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    if (allMovies.length === 0) {
+      setActiveMovieId(null);
+      return;
+    }
+
+    setActiveMovieId((current) => {
+      if (current && allMovies.some((movie) => movie.id === current)) {
+        return current;
+      }
+      return allMovies[0].id;
+    });
+  }, [allMovies]);
+
+  const registerVideoNode = useCallback(
+    (movieId: MovieID) => (node: HTMLDivElement | null) => {
+      const registry = videoNodeRegistry.current;
+      if (node) {
+        registry.set(movieId, node);
+        observerRef.current?.observe(node);
+      } else {
+        const existing = registry.get(movieId);
+        if (existing) {
+          observerRef.current?.unobserve(existing);
+          registry.delete(movieId);
+        }
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const root = scrollContainerRef.current;
+    if (!root) return;
+
+    observerRef.current?.disconnect();
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // entries is an array, but we only observe one element
-        const entry = entries[0];
+        const visibleEntries = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
 
-        // If sentinel is visible and we're not already fetching
+        const [mostVisible] = visibleEntries;
+        if (!mostVisible) return;
+
+        const idAttr = mostVisible.target.getAttribute("data-movie-id");
+        if (!idAttr) return;
+
+        const movieId = Number(idAttr) as MovieID;
+        setActiveMovieId((current) =>
+          current === movieId ? current : movieId,
+        );
+      },
+      { root, threshold: [0.55, 0.75, 0.9] },
+    );
+
+    videoNodeRegistry.current.forEach((node) => observer.observe(node));
+    observerRef.current = observer;
+
+    return () => observer.disconnect();
+  }, [allMovies.length]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    const root = scrollContainerRef.current;
+    if (!sentinel || !root) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
         if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
         }
       },
-      {
-        // Trigger when sentinel is 200px away from viewport
-        rootMargin: "200px",
-        // Trigger as soon as any part is visible
-        threshold: 0,
-      },
+      { root, rootMargin: "200px", threshold: 0 },
     );
 
     observer.observe(sentinel);
 
-    // Cleanup: disconnect observer when component unmounts
-    return () => {
-      observer.disconnect();
-    };
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, allMovies.length]);
+
+  const activeMovie = useMemo(() => {
+    if (!allMovies.length) return null;
+    if (activeMovieId === null) return allMovies[0];
+    return (
+      allMovies.find((movie) => movie.id === activeMovieId) ?? allMovies[0]
+    );
+  }, [activeMovieId, allMovies]);
 
   if (status === "pending") {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <Pill isLoading loadingText="Loading movies..." />
       </div>
     );
@@ -109,7 +173,7 @@ export function ScrollFeed() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <Pill variant="dark">
           <p className="text-sm text-red-400">
             Error loading movies: {error.message}
@@ -119,42 +183,52 @@ export function ScrollFeed() {
     );
   }
 
-  // Flatten all pages into a single array of movies
-  const allMovies = data.pages.flatMap((page) => page.movies);
+  if (!activeMovie) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Pill variant="light">
+          <p className="text-sm text-gray-500">No movies to display</p>
+        </Pill>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="h-full overflow-y-scroll snap-y snap-mandatory relative"
-      style={{ scrollBehavior: "smooth" }}
-    >
-      {/* Render all movies */}
-      {allMovies.map((movie, index) => (
+    <div className="relative h-full">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-4 px-4 py-6 lg:grid lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)_minmax(0,300px)] lg:items-center lg:gap-6">
+        <MovieRoomCard movie={activeMovie} />
+
         <div
-          key={movie.id}
-          className="min-h-full snap-start snap-always flex items-center justify-center px-4 py-16"
+          ref={scrollContainerRef}
+          className="flex h-full min-h-0 flex-1 snap-y snap-mandatory flex-col gap-12 overflow-y-scroll scrollbar-hide"
+          style={{ scrollBehavior: "smooth" }}
         >
-          <div className="w-full max-w-4xl">
-            <VideoCard movie={movie} />
-          </div>
+          {allMovies.map((movie) => (
+            <div
+              key={movie.id}
+              data-movie-id={movie.id}
+              ref={registerVideoNode(movie.id)}
+              className="min-h-full snap-start snap-always"
+            >
+              <VideoCard movie={movie} />
+            </div>
+          ))}
+          <div ref={sentinelRef} className="h-1 w-full" />
+          {!hasNextPage && allMovies.length > 0 && (
+            <div className="flex h-full min-h-[30vh] items-center justify-center">
+              <Pill variant="light">
+                <p className="text-sm text-gray-500">No more movies to load</p>
+              </Pill>
+            </div>
+          )}
         </div>
-      ))}
 
-      {/* Sentinel element for intersection observer - hidden, just for triggering */}
-      <div ref={sentinelRef} className="h-1" />
+        <MovieRatingsCard rating={activeMovie.rating} />
+      </div>
 
-      {/* Loading indicator - fixed position overlay */}
       {isFetchingNextPage && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 transform">
           <Pill isLoading loadingText="Loading more movies..." />
-        </div>
-      )}
-
-      {/* End of feed indicator */}
-      {!hasNextPage && allMovies.length > 0 && (
-        <div className="h-full snap-start flex items-center justify-center">
-          <Pill variant="light">
-            <p className="text-sm text-gray-500">No more movies to load</p>
-          </Pill>
         </div>
       )}
     </div>

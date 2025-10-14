@@ -34,7 +34,7 @@ export function ProfileMenu() {
   };
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative z-50" ref={menuRef}>
       {/* Profile Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -48,15 +48,6 @@ export function ProfileMenu() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white border-2 border-black/10 shadow-lg z-50">
           <div className="py-2">
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                router.push("/scroll/watchlist");
-              }}
-              className="w-full px-4 py-2.5 text-left text-black hover:bg-black/5 transition-colors"
-            >
-              Watchlist
-            </button>
             <button
               onClick={() => {
                 setIsOpen(false);
@@ -75,6 +66,31 @@ export function ProfileMenu() {
             >
               Settings
             </button>
+            <div className="border-t border-black/10 my-1" />
+            <div className="px-4 py-2.5">
+              <div className="text-sm font-medium text-black mb-1">About</div>
+              <div className="text-xs text-black/60 leading-relaxed">
+                Movie data provided by{" "}
+                <a
+                  href="https://www.themoviedb.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  TMDB
+                </a>
+                . Streaming provider information from{" "}
+                <a
+                  href="https://www.justwatch.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  JustWatch
+                </a>
+                .
+              </div>
+            </div>
             <div className="border-t border-black/10 my-1" />
             <button
               onClick={handleSignOut}

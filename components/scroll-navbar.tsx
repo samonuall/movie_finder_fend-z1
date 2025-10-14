@@ -8,7 +8,7 @@ export function ScrollNavbar() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "My Movies", href: "/scroll/my-movies" },
+    { name: "Watchlist", href: "/scroll/watchlist" },
     { name: "Scroll", href: "/scroll" },
     { name: "Rooms", href: "/scroll/rooms" },
   ];
