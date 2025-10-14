@@ -5,9 +5,9 @@ import type { Movie } from "@/lib/types";
 
 export function VideoCard({ movie }: { movie: Movie }) {
   return (
-    <Card className="max-h-[90vh] overflow-hidden">
+    <Card className="overflow-hidden">
       <CardContent className="p-0">
-        <div className="relative h-[60vh] w-full overflow-hidden bg-black">
+        <div className="relative h-[85vh] w-full overflow-hidden bg-black">
           <iframe
             className="absolute inset-0 h-full w-full"
             src={movie.videoUrl}

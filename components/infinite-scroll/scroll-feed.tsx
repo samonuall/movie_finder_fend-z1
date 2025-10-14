@@ -195,12 +195,12 @@ export function ScrollFeed() {
 
   return (
     <div className="relative h-full">
-      <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-6 px-4 py-12 lg:grid lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)_minmax(0,280px)] lg:items-start">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-4 px-4 py-6 lg:grid lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)_minmax(0,300px)] lg:items-center lg:gap-6">
         <MovieRoomCard movie={activeMovie} />
 
         <div
           ref={scrollContainerRef}
-          className="flex h-full min-h-0 flex-1 snap-y snap-mandatory flex-col gap-12 overflow-y-scroll"
+          className="flex h-full min-h-0 flex-1 snap-y snap-mandatory flex-col gap-12 overflow-y-scroll scrollbar-hide"
           style={{ scrollBehavior: "smooth" }}
         >
           {allMovies.map((movie) => (
