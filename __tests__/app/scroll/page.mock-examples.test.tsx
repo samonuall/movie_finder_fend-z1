@@ -10,6 +10,19 @@ import { render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScrollPage from "@/app/scroll/page";
 
+const originalFetch = global.fetch;
+
+beforeEach(() => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ movies: [] }),
+  } as unknown as Response);
+});
+
+afterAll(() => {
+  global.fetch = originalFetch;
+});
+
 // Helper to wrap component with QueryClientProvider
 const renderWithQueryClient = (component: React.ReactElement) => {
   const queryClient = new QueryClient({
