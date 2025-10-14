@@ -58,6 +58,7 @@ Add your environment variables:
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 # Optional: OAuth redirect (for development)
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000/auth/callback
@@ -67,6 +68,7 @@ To get your Supabase credentials:
 1. Create a project at [supabase.com](https://supabase.com)
 2. Go to Project Settings → API
 3. Copy the Project URL and anon/public key
+4. Copy the **service role** key and store it only in server environments (do not expose it to the client)
 
 4. **Configure Supabase Authentication**
 
