@@ -46,7 +46,7 @@ export function ProfileMenu() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-white border-2 border-black/10 shadow-lg z-[9999]">
+        <div className="absolute right-0 mt-2 w-56 bg-white border-2 border-black/10 shadow-lg z-50">
           <div className="py-2">
             <button
               onClick={() => {
