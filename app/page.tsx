@@ -9,11 +9,10 @@ export default function LandingPage() {
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-4">
             <h1 className="text-5xl lg:text-6xl font-bold text-black leading-tight">
-              Welcome to Our Platform
+              Movie Finder
             </h1>
             <p className="text-xl text-black/70 leading-relaxed">
-              Experience the future of digital content. Join thousands of users
-              who trust our platform for their entertainment needs.
+              Discover and explore movies with ease. Sign up to get started!
             </p>
           </div>
 
