@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ScrollNavbar } from "@/components/scroll-navbar";
 
 export default async function WatchlistPage() {
   const supabase = await createClient();
@@ -14,20 +15,7 @@ export default async function WatchlistPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
-      <nav className="border-b border-black/10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link
-            href="/scroll"
-            className="text-black hover:text-black/70 transition-colors"
-          >
-            ← Back
-          </Link>
-          <h1 className="text-xl font-semibold text-black">Watchlist</h1>
-          <div className="w-16" /> {/* Spacer for centering */}
-        </div>
-      </nav>
-
+      <ScrollNavbar />
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="text-center py-20">
