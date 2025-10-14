@@ -11,6 +11,32 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ScrollPage from "@/app/scroll/page";
 
 const originalFetch = global.fetch;
+const originalIntersectionObserver = global.IntersectionObserver;
+
+class IntersectionObserverMock {
+  constructor() {}
+
+  observe() {
+    return null;
+  }
+
+  unobserve() {
+    return null;
+  }
+
+  disconnect() {
+    return null;
+  }
+
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+}
+
+beforeAll(() => {
+  // @ts-expect-error jsdom test environment does not implement IntersectionObserver
+  global.IntersectionObserver = IntersectionObserverMock;
+});
 
 beforeEach(() => {
   global.fetch = jest.fn().mockResolvedValue({
@@ -21,6 +47,8 @@ beforeEach(() => {
 
 afterAll(() => {
   global.fetch = originalFetch;
+  // @ts-expect-error restoring mocked IntersectionObserver
+  global.IntersectionObserver = originalIntersectionObserver;
 });
 
 // Helper to wrap component with QueryClientProvider
