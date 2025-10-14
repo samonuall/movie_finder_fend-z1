@@ -36,3 +36,13 @@
 - Store secrets in `.env.local`; never commit Supabase keys or TMDB tokens.
 - Document new `NEXT_PUBLIC_*` variables in the PR body and provide safe defaults in `.env.example`.
 - Updates touching auth must be validated against `middleware.ts` to ensure protected routes remain guarded.
+
+## MCP Tooling
+- Use the Supabase MCP server for schema intel: call `supabase__list_projects` to locate the project ID, then `supabase__list_tables` (and, when needed, `supabase__execute_sql`) to inspect tables, columns, policies, and sample data without touching app code.
+- Run read-only queries first; keep track of the project ID (`.env.local` mirrors it) so you do not query the wrong instance.
+- Prefer MCP requests over ad-hoc SQL files; summarize findings in responses rather than copying raw JSON.
+
+## Chrome DevTools MCP
+- After `pnpm dev`, attach via the Chrome DevTools MCP server to audit the running site: use `chrome-devtools__take_snapshot` for DOM diffs, `chrome-devtools__list_console_messages` to confirm clean logs, and `chrome-devtools__performance_start_trace`/`__performance_stop_trace` for Core Web Vitals insights.
+- Capture console output before and after your change; surface new warnings or errors in code reviews.
+- For regressions, combine screenshots (`chrome-devtools__take_screenshot`) and performance traces with the relevant code diff so reviewers can verify quickly.
