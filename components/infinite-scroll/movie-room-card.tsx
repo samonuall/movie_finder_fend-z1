@@ -74,7 +74,7 @@ export function MovieRoomCard({ movie }: MovieRoomCardProps) {
   }, [isExpanded, movie.description]);
 
   return (
-    <Card className="h-fit lg:sticky lg:top-24">
+    <Card className="h-fit lg:sticky lg:top-24 lg:max-w-xl">
       <CardHeader className="border-b border-black/10">
         <CardTitle className="text-lg font-semibold text-black">
           {movie.title}

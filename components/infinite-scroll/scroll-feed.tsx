@@ -195,7 +195,7 @@ export function ScrollFeed() {
 
   return (
     <div className="relative h-full">
-      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-4 px-4 py-6 lg:grid lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)_minmax(0,300px)] lg:items-center lg:gap-6">
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-4 px-4 py-6 lg:grid lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)_minmax(0,300px)] lg:items-center lg:gap-6">
         <MovieRoomCard movie={activeMovie} />
 
         <div
