@@ -2,6 +2,9 @@
 
 A web application that allows users to find movies together in an infinite scroll style. Pulls movie data from the TMDB API, streaming data from streamwatch. Built with Next.js, React, TailwindCSS, and Supabase.
 
+## UPDATE
+Currently does not actually run because the Supabase project is inactive, but this code still represents some of my work on full stack engineering so I decided to keep it up :)
+
 ## Features
 
 - 🔐 **Authentication**: Secure login with email/password or Google OAuth
